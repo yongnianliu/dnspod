@@ -1,5 +1,13 @@
 # dnspod.py
 
+原地址:https://github.com/migege/dnspod.git，感谢作者的辛勤付出
+
+```
+Fix: 修复conf.yaml配置多个域名会被覆盖问题
+Fix: 修复更新ip后TTL时间变成10问题
+Change: conf配置从yaml格式改成json，去掉对yaml库的依赖
+```
+
 ```
 @author migege
 @version 0.0.2

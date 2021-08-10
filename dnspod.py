@@ -3,7 +3,7 @@
 import os, sys
 import requests
 import socket
-import yaml
+import json
 
 reload(sys)
 sys.setdefaultencoding("utf8")
@@ -51,6 +51,7 @@ class DNSPod(object):
 
     def run(self):
         ip = self.GetIP()
+        print("ip:{}".format(ip))
         conf_md5 = self.GetConfMD5()
         if ip and ip != self.ip:
             logger().info("IP changed from '%s' to '%s'", self.ip, ip)
@@ -68,6 +69,10 @@ class DNSPod(object):
                 return
 
     def GetIP(self):
+        custom_ip = Last('custom.ip').Read()
+        if custom_ip:
+            return custom_ip
+
         try:
             sock = socket.create_connection(address=('ns1.dnspod.net', 6666), timeout=10)
             ip = sock.recv(32)
@@ -88,13 +93,13 @@ class DNSPod(object):
             return None
 
     def __DDnsImpl(self, ip, todo_list):
-        url = "https://dnsapi.cn/Record.Ddns"
+        url = "https://dnsapi.cn/Record.Modify"
         headers = {
             "User-Agent": "github.com#migege#dnspod/0.0.2 (lzw.whu@gmail.com)",
         }
 
         retry_list = []
-        for sub_domain, v in todo_list:
+        for v in todo_list:
             try:
                 valid = v["valid"]
                 if not valid:
@@ -103,8 +108,13 @@ class DNSPod(object):
                 pass
 
             try:
+                sub_domain = v["sub_domain"]
                 domain_id = v["domain_id"]
                 record_id = v["record_id"]
+                print("sub_domain:{}".format(sub_domain))
+                print("domain_id:{}".format(domain_id))
+                print("record_id:{}".format(record_id))
+
                 data = {
                     "login_token": self.conf["token"],
                     "format": "json",
@@ -112,6 +122,8 @@ class DNSPod(object):
                     "record_id": record_id,
                     "sub_domain": sub_domain,
                     "record_line": "默认",
+                    "record_type":"A",
+                    "ttl":"600",
                     "value": ip,
                 }
 
@@ -128,7 +140,7 @@ class DNSPod(object):
 
     def DDns(self, ip):
         RETRY_LIMIT = 2
-        retry_list = self.__DDnsImpl(ip, self.conf["sub_domains"].items())
+        retry_list = self.__DDnsImpl(ip, self.conf["sub_domains"])
         retry = 0
         while retry_list and retry < RETRY_LIMIT:
             retry_list = self.__DDnsImpl(ip, retry_list)
@@ -142,6 +154,7 @@ class DNSPod(object):
 
 if __name__ == '__main__':
     opts = getopts()
-    conf = yaml.load(open(os.path.join(os.path.dirname(os.path.realpath(__file__)), opts.config), "r"))
+    conf = json.loads(Last(opts.config).Read())
+    print(conf)
     dnspod = DNSPod(conf)
     dnspod.run()
