@@ -133,10 +133,10 @@ class DNSPod(object):
                     logger().info("DDns OK for subdomain [%s]", sub_domain)
                 else:
                     logger().error("DDns response for subdomain [%s]: %s", sub_domain, r.text)
-                    retry_list.append((sub_domain, v))
+                    retry_list.append(v)
             except Exception, e:
                 logger().error("DDns Error for subdomain [%s]: %s", sub_domain, e)
-                retry_list.append((sub_domain, v))
+                retry_list.append(v)
         return retry_list
 
     def DDns(self, ip):
