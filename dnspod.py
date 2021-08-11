@@ -107,8 +107,9 @@ class DNSPod(object):
             except:
                 pass
 
+            sub_domain = v["sub_domain"]
             try:
-                sub_domain = v["sub_domain"]
+                
                 domain_id = v["domain_id"]
                 record_id = v["record_id"]
                 print("sub_domain:{}".format(sub_domain))
